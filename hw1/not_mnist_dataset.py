@@ -1,11 +1,9 @@
 from __future__ import print_function
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import sys
 import tarfile
 from scipy import ndimage
-from sklearn.linear_model import LogisticRegression
 from six.moves.urllib.request import urlretrieve
 from six.moves import cPickle as pickle
 
@@ -32,6 +30,15 @@ class NotMnistDataset(object):
         print('Validation set', self.__valid_dataset.shape, self.__valid_labels.shape)
         print('Test set', self.__test_dataset.shape, self.__test_labels.shape)
 
+    def get_train_data(self):
+        return self.__train_dataset, self.__train_labels
+
+    def get_valid_data(self):
+        return self.__valid_dataset, self.__valid_labels
+
+    def get_test_data(self):
+        return self.__test_dataset, self.__test_labels
+
     def __download_progress_hook(self, count, blockSize, totalSize):
         """A hook to report the progress of a download. This is mostly intended for users with
         slow internet connections. Reports every 1% change in download progress.
@@ -48,7 +55,7 @@ class NotMnistDataset(object):
           
         self.__last_percent_reported = percent
             
-    def __maybe_download(self, filename, expected_bytes, force = False):
+    def __maybe_download(self, filename, expected_bytes, force=False):
         """Download a file if not present, and make sure it's the right size."""
         if force or not os.path.exists(self.__data_dir + filename):
             print('Attempting to download:', filename) 
