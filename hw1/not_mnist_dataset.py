@@ -10,14 +10,57 @@ from six.moves import cPickle as pickle
 sys.path.append("..")
 from common.common import DATA_DIR
 
+class Dataset(object):
+    def __init__(self, images, labels, is_flatten):
+        assert(images.shape[0] == labels.shape[0],
+                "images.shape: %s labels.shape: %s" % (images.shape, labels.shape))
+        self.__images = images
+        if is_flatten:
+            self.__images = self.__images.reshape(images.shape[0],
+                    images.shape[1] * images.shape[2])
+        self.__labels = labels
+        self.__count = images.shape[0]
+        self.reset()
+
+    @property
+    def images(self):
+        return self.__images
+
+    @property
+    def labels(self):
+        return self.__labels
+
+    @property
+    def count(self):
+        return self.__count
+
+    def reset(self):
+        self.__epochs_completed = 0
+        self.__index_in_epoch = 0
+
+    def next_batch(self, batch_size):
+        start = self.__index_in_epoch
+        self.__index_in_epoch += batch_size
+        if self.__index_in_epoch > self.count:
+            self.__epochs_completed += 1
+            perm = np.arange(self.count)
+            np.random.shuffle(perm)
+            self.__images = self.__images[perm]
+            self.__labels = self.__labels[perm]
+            start = 0
+            self.__index_in_epoch = batch_size
+        end = self.__index_in_epoch
+        return self.__images[start:end], self.__labels[start:end]
+
 class NotMnistDataset(object):
     __url = 'http://commondatastorage.googleapis.com/books1000/'
     __num_classes = 10
     __image_size = 28  # Pixel width and height.
+    __image_pixel = __image_size ** 2
     __pixel_depth = 255.0  # Number of levels per pixel.
     __train_size = 200000
     __valid_size = 10000
-    __test_size = 10000
+    __test_size = 18724
     __pickle_file = 'notMNIST.pickle'
 
     def __init__(self, data_dir):
@@ -38,6 +81,25 @@ class NotMnistDataset(object):
 
     def get_test_data(self):
         return self.__test_dataset, self.__test_labels
+
+    def get_datasets(self, is_flatten):
+        import collections
+        Datasets = collections.namedtuple('Datasets', ['train', 'validation', 'test'])
+        return Datasets(train=Dataset(self.__train_dataset, self.__train_labels, is_flatten),
+                validation=Dataset(self.__valid_dataset, self.__valid_labels, is_flatten),
+                test=Dataset(self.__test_dataset, self.__test_labels, is_flatten))
+
+    @staticmethod
+    def num_class():
+        return NotMnistDataset.__num_classes
+    
+    @staticmethod
+    def image_size():
+        return NotMnistDataset.__image_size
+
+    @staticmethod
+    def image_pixel():
+        return NotMnistDataset.__image_pixel
 
     def __download_progress_hook(self, count, blockSize, totalSize):
         """A hook to report the progress of a download. This is mostly intended for users with
