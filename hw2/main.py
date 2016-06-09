@@ -9,10 +9,14 @@ sys.path.append("..")
 from common.common import DATA_DIR
 from hw1.not_mnist_dataset import NotMnistDataset
 from hw2.lr_model import LRModel
+from hw2.mlp_model import MLPModel
 
 def train(model, datasets, save_dir, log_dir, num_steps, batch_size, learning_rate):
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
+    if os.path.isdir(log_dir):
+        import shutil
+        shutil.rmtree(log_dir)
     with tf.Graph().as_default():
         images_pl, labels_pl = model.get_data_input(batch_size)
         logits = model.get_model(images_pl)
@@ -47,16 +51,30 @@ def train(model, datasets, save_dir, log_dir, num_steps, batch_size, learning_ra
                 precision = model.do_eval(sess, evaluation, images_pl, labels_pl, datasets.test, batch_size)
                 print("  Precision: %0.06f" % precision)
 
-def main():
+def main(model_name, num_steps, batch_size, learning_rate):
     save_dir = "snapshot/"
     log_dir = "log/"
     datasets = NotMnistDataset(DATA_DIR).datasets
-    num_steps = 50000
-    batch_size = 128
-    learning_rate = 0.5
-    lr_model = LRModel()
-    train(lr_model, datasets, save_dir, log_dir, num_steps, batch_size, learning_rate);
+    if model_name == "lr":
+        model = LRModel()
+    elif model_name == "mlp":
+        model = MLPModel(1024)
+    else:
+        raise ValueError("invalid model name: " + model_name)
+    train(model, datasets, save_dir, log_dir, num_steps, batch_size, learning_rate)
 
+import argparse
+def parse_args():
+    parser = argparse.ArgumentParser() 
+    parser.add_argument("--model_name", help="model name", default="lr")
+    parser.add_argument("--max_step", help="max steps for iteration",
+            type=int, default=100000)
+    parser.add_argument("--batch_size", help="batch size",
+            type=int, default=128)
+    parser.add_argument("--learning_rate", help="learning rate",
+            type=float, default=0.1)
+    return parser.parse_args()
 
 if __name__ == '__main__':
-    main()
+    args = parse_args()
+    main(args.model_name, args.max_step, args.batch_size, args.learning_rate)
