@@ -19,10 +19,13 @@ def train(model, datasets, save_dir, log_dir, num_steps, batch_size, learning_ra
         shutil.rmtree(log_dir)
     with tf.Graph().as_default():
         images_pl, labels_pl = model.get_data_input(batch_size)
-        logits = model.get_model(images_pl)
+        logits = model.get_model(images_pl, False)
+        tf.get_variable_scope().reuse_variables()
         loss = model.get_loss(logits, labels_pl)
-        optimizer = model.get_optimizer(loss, learning_rate)
-        evaluation = model.get_evaluation(logits, labels_pl)
+        optimizer = model.get_optimizer(loss, learning_rate, batch_size, datasets.train.count)
+        evaluation = model.get_evaluation(logits, labels_pl, False)
+        test_logits = model.get_model(images_pl, True)
+        test_evaluation = model.get_evaluation(test_logits, labels_pl, True)
         summary_op = tf.merge_all_summaries()
         init = tf.initialize_all_variables()
         saver = tf.train.Saver()
@@ -45,10 +48,10 @@ def train(model, datasets, save_dir, log_dir, num_steps, batch_size, learning_ra
             if (step + 1) % 1000 == 0 or (step + 1) == num_steps:
                 saver.save(sess, save_dir, global_step=step)
                 print("Validation dataset:")
-                precision = model.do_eval(sess, evaluation, images_pl, labels_pl, datasets.validation, batch_size)
+                precision = model.do_eval(sess, test_evaluation, images_pl, labels_pl, datasets.validation, batch_size)
                 print("  Precision: %0.06f" % precision)
                 print("Test dataset:")
-                precision = model.do_eval(sess, evaluation, images_pl, labels_pl, datasets.test, batch_size)
+                precision = model.do_eval(sess, test_evaluation, images_pl, labels_pl, datasets.test, batch_size)
                 print("  Precision: %0.06f" % precision)
 
 def main(model_name, num_steps, batch_size, learning_rate):
@@ -72,7 +75,7 @@ def parse_args():
     parser.add_argument("--batch_size", help="batch size",
             type=int, default=128)
     parser.add_argument("--learning_rate", help="learning rate",
-            type=float, default=0.1)
+            type=float, default=0.5)
     return parser.parse_args()
 
 if __name__ == '__main__':

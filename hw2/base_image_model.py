@@ -41,14 +41,14 @@ class BaseImageModel(object):
         precision /= steps_per_epoch
         return precision
 
-    def get_evaluation(self, logits, labels):
+    def get_evaluation(self, logits, labels, is_test):
         correct = tf.nn.in_top_k(logits, labels, 1)
         precision = tf.reduce_mean(tf.cast(correct, tf.float32))
-        tf.scalar_summary("precision", precision)
+        tf.scalar_summary(("test" if is_test else "train") + "/precision", precision)
         return precision
 
     @abstractmethod
-    def get_model(self, images):
+    def get_model(self, images, is_test):
         pass
 
     @abstractmethod
@@ -56,6 +56,6 @@ class BaseImageModel(object):
         pass
 
     @abstractmethod
-    def get_optimizer(self, loss, learning_rate):
+    def get_optimizer(self, loss, learning_rate, batch_size, train_size):
         pass
 
