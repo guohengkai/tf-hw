@@ -10,10 +10,10 @@ from common.common import DATA_DIR, get_sample_idx
 from hw1.not_mnist_dataset import NotMnistDataset
 
 def load_dataset(display=False):
-    dataset = NotMnistDataset(DATA_DIR)
-    train_image, train_label = dataset.get_train_data()
-    valid_image, valid_label = dataset.get_valid_data()
-    test_image, test_label = dataset.get_test_data()
+    datasets = NotMnistDataset(DATA_DIR).datasets
+    train_image, train_label = datasets.train.images, datasets.train.labels
+    valid_image, valid_label = datasets.validation.images, datasets.validation.labels
+    test_image, test_label = datasets.test.images, datasets.test.labels
     if display:  # display 10 images
         for i in xrange(10):
             image = train_image[i]

@@ -6,18 +6,21 @@ from base_image_model import BaseImageModel
 from hw1.not_mnist_dataset import NotMnistDataset
 
 class LRModel(BaseImageModel):
-    def __init__(self, is_image):
-        BaseImageModel.__init__(self, is_image)
+    def __init__(self):
+        BaseImageModel.__init__(self, True)
 
-    def get_model(self, images):
+    def _get_softmax_model(self, last_output):
         with tf.name_scope("softmax_linear"):
             weights = tf.Variable(
                     tf.truncated_normal([self.image_pixel, self.num_class],
                         name="weights"))
             biases = tf.Variable(tf.zeros([self.num_class]),
                     name="biases")
-            logits = tf.matmul(images, weights) + biases
+            logits = tf.matmul(last_output, weights) + biases
         return logits
+
+    def get_model(self, images):
+        return self._get_softmax_model(images)
 
     def get_loss(self, logits, labels):
         labels = tf.to_int64(labels)
@@ -33,6 +36,3 @@ class LRModel(BaseImageModel):
         train_op = optimizer.minimize(loss, global_step=global_step)
         return train_op
 
-    def get_evaluation(self, logits, labels):
-        correct = tf.nn.in_top_k(logits, labels, 1)
-        return tf.reduce_sum(tf.cast(correct, tf.int32))

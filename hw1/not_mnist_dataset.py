@@ -9,48 +9,7 @@ from six.moves import cPickle as pickle
 
 sys.path.append("..")
 from common.common import DATA_DIR
-
-class Dataset(object):
-    def __init__(self, images, labels, is_flatten):
-        assert(images.shape[0] == labels.shape[0],
-                "images.shape: %s labels.shape: %s" % (images.shape, labels.shape))
-        self.__images = images
-        if is_flatten:
-            self.__images = self.__images.reshape(images.shape[0],
-                    images.shape[1] * images.shape[2])
-        self.__labels = labels
-        self.__count = images.shape[0]
-        self.reset()
-
-    @property
-    def images(self):
-        return self.__images
-
-    @property
-    def labels(self):
-        return self.__labels
-
-    @property
-    def count(self):
-        return self.__count
-
-    def reset(self):
-        self.__epochs_completed = 0
-        self.__index_in_epoch = 0
-
-    def next_batch(self, batch_size):
-        start = self.__index_in_epoch
-        self.__index_in_epoch += batch_size
-        if self.__index_in_epoch > self.count:
-            self.__epochs_completed += 1
-            perm = np.arange(self.count)
-            np.random.shuffle(perm)
-            self.__images = self.__images[perm]
-            self.__labels = self.__labels[perm]
-            start = 0
-            self.__index_in_epoch = batch_size
-        end = self.__index_in_epoch
-        return self.__images[start:end], self.__labels[start:end]
+from common.datasets import Dataset, Datasets
 
 class NotMnistDataset(object):
     __url = 'http://commondatastorage.googleapis.com/books1000/'
@@ -82,12 +41,11 @@ class NotMnistDataset(object):
     def get_test_data(self):
         return self.__test_dataset, self.__test_labels
 
-    def get_datasets(self, is_flatten):
-        import collections
-        Datasets = collections.namedtuple('Datasets', ['train', 'validation', 'test'])
-        return Datasets(train=Dataset(self.__train_dataset, self.__train_labels, is_flatten),
-                validation=Dataset(self.__valid_dataset, self.__valid_labels, is_flatten),
-                test=Dataset(self.__test_dataset, self.__test_labels, is_flatten))
+    @property
+    def datasets(self):
+        return Datasets(train=Dataset(self.__train_dataset, self.__train_labels),
+                validation=Dataset(self.__valid_dataset, self.__valid_labels),
+                test=Dataset(self.__test_dataset, self.__test_labels))
 
     @staticmethod
     def num_class():
