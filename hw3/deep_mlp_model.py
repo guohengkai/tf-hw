@@ -1,4 +1,5 @@
 import sys
+import math
 import tensorflow as tf
 import tensorflow.contrib.framework as framework
 
@@ -17,7 +18,8 @@ class DeepMLPModel(LRModel):
             layer_name = "hidden_%d" % layer_num
             with tf.variable_scope(layer_name):
                 weights = tf.get_variable("weights",
-                        initializer=tf.truncated_normal([last_dim, hidden_num]))
+                        initializer=tf.truncated_normal([last_dim, hidden_num],
+                            stddev=1.0 / math.sqrt(float(last_dim))))
                 biases = tf.get_variable("biases",
                         initializer=tf.zeros([hidden_num]))
                 if not is_test:
