@@ -59,6 +59,10 @@ class NotMnistDataset(object):
     def image_pixel():
         return NotMnistDataset.__image_pixel
 
+    @staticmethod
+    def channel():
+        return 1
+
     def __download_progress_hook(self, count, blockSize, totalSize):
         """A hook to report the progress of a download. This is mostly intended for users with
         slow internet connections. Reports every 1% change in download progress.

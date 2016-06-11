@@ -20,7 +20,7 @@ def main(hidden_num, num_steps, batch_size, learning_rate):
 import argparse
 def parse_args():
     parser = argparse.ArgumentParser() 
-    parser.add_argument("--hidden_num", help="list of hidden_num",
+    parser.add_argument("--hidden_num", help="list of hidden number",
             default="1024,1024")
     parser.add_argument("--max_step", help="max steps for iteration",
             type=int, default=200000)

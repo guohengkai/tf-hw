@@ -10,6 +10,7 @@ class BaseImageModel(object):
     image_size = NotMnistDataset.image_size()
     image_pixel = NotMnistDataset.image_pixel()
     num_class = NotMnistDataset.num_class()
+    channel = NotMnistDataset.channel()
 
     def __init__(self, is_flatten):
         self.__is_flatten = is_flatten
@@ -20,7 +21,7 @@ class BaseImageModel(object):
                     self.image_pixel))
         else:
             images_pl = tf.placeholder(tf.float32, shape=(batch_size,
-                    self.image_size, self.image_size))
+                    self.image_size, self.image_size, self.channel))
         labels_pl = tf.placeholder(tf.int32, shape=(batch_size))
         return images_pl, labels_pl
 
@@ -31,6 +32,14 @@ class BaseImageModel(object):
                 labels_pl: labels_feed,
         }
         return feed_dict
+
+    @property
+    def is_flatten(self):
+        return self.__is_flatten
+
+    @is_flatten.setter
+    def is_flatten(self, value):
+        self.__is_flatten = value
 
     def do_eval(self, sess, evaluation, images_pl, labels_pl, dataset, batch_size):
         precision = 0.0

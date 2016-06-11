@@ -40,6 +40,9 @@ class Dataset(object):
         batch_image = self.__images[start:end]
         if is_flatten:
             batch_image = batch_image.reshape((batch_image.shape[0], -1))
+        else:
+            batch_image = batch_image.reshape((batch_image.shape[0], batch_image.shape[1],
+                batch_image.shape[2], 1))
         return batch_image, self.__labels[start:end]
 
 import collections
