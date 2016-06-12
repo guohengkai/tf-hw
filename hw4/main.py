@@ -11,7 +11,7 @@ from hw2.main import train
 from hw4.deep_conv_model import DeepConvModel
 from hw4.stack_lstm_model import StackLSTMModel
 
-def main(model_name, conv_num, lstm_num, hidden_num, num_steps, batch_size, learning_rate):
+def main(model_name, load_name, conv_num, lstm_num, hidden_num, num_steps, batch_size, learning_rate):
     save_dir = "snapshot/"
     log_dir = "log/"
     datasets = NotMnistDataset(DATA_DIR).datasets
@@ -21,7 +21,7 @@ def main(model_name, conv_num, lstm_num, hidden_num, num_steps, batch_size, lear
         model = StackLSTMModel(lstm_num, hidden_num)
     else:
         raise ValueError("invalid model name: " + model_name)
-    train(model, datasets, save_dir, log_dir, num_steps, batch_size, learning_rate)
+    train(model, load_name, datasets, save_dir, log_dir, num_steps, batch_size, learning_rate)
 
 import argparse
 def parse_args():
@@ -39,6 +39,8 @@ def parse_args():
             type=int, default=128)
     parser.add_argument("--learning_rate", help="learning rate",
             type=float, default=0.01)
+    parser.add_argument("--load_name", help="load name",
+            default="")
     return parser.parse_args()
 
 def parse_conv_num(conv_num):
@@ -62,7 +64,7 @@ def parse_conv_num(conv_num):
 
 if __name__ == '__main__':
     args = parse_args()
-    main(args.model_name, parse_conv_num(args.conv_num),
+    main(args.model_name, args.load_name, parse_conv_num(args.conv_num),
             map(int, args.lstm_num.split(",")),
             map(int, args.hidden_num.split(",")),
             args.max_step, args.batch_size, args.learning_rate)

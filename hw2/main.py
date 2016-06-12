@@ -11,7 +11,7 @@ from hw1.not_mnist_dataset import NotMnistDataset
 from hw2.lr_model import LRModel
 from hw2.mlp_model import MLPModel
 
-def train(model, datasets, save_dir, log_dir, num_steps, batch_size, learning_rate):
+def train(model, load_name, datasets, save_dir, log_dir, num_steps, batch_size, learning_rate):
     if not os.path.isdir(save_dir):
         os.mkdir(save_dir)
     if os.path.isdir(log_dir):
@@ -32,6 +32,8 @@ def train(model, datasets, save_dir, log_dir, num_steps, batch_size, learning_ra
         sess = tf.Session()
         summary_writer = tf.train.SummaryWriter(log_dir, sess.graph)
         sess.run(init)
+        if not load_name == "":
+            saver.restore(sess, tf.train.latest_checkpoint(save_dir))
         print("Initialized")
         for step in xrange(num_steps):
             start_time = time.time()
@@ -46,7 +48,8 @@ def train(model, datasets, save_dir, log_dir, num_steps, batch_size, learning_ra
                 summary_writer.flush()
 
             if (step + 1) % 1000 == 0 or (step + 1) == num_steps:
-                saver.save(sess, save_dir, global_step=step)
+                save_name = saver.save(sess, save_dir, global_step=step)
+                print("Model saved in %s." % save_name)
                 print("Validation dataset:")
                 precision = model.do_eval(sess, test_evaluation, images_pl, labels_pl, datasets.validation, batch_size)
                 print("  Precision: %0.06f" % precision)
